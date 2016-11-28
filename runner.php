@@ -11,7 +11,9 @@ $outputDir = "/var/db/ngramradio/text/";
 $filename = $argv[1];
 foreach (range(1,20) as $order) {
     $destination = $outputDir . basename($argv[1],".txt") . "-" . $order . ".txt";
-    if (! file_exists($destination)) {
+    echo ("Checking for $destination\n");
+    if (file_exists($destination)==FALSE) {
+      echo ("Does not exist.");
       $length = 250000;
       $text = file_get_contents($filename);
       $markov_table = generate_markov_table($text, $order);
