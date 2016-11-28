@@ -8,11 +8,17 @@
 require 'markov.php';
 
 $outputDir = "/var/db/ngramradio/text/";
-
+$filename = $argv[1];
 foreach (range(1,20) as $order) {
-    $length = 250000;
-    $text = file_get_contents($argv[1]);
-    $markov_table = generate_markov_table($text, $order);
-    $markov = generate_markov_text($length, $markov_table, $order);
-    file_put_contents($outputDir . basename($argv[1],".txt") . "-" . $order . ".txt", $markov);
+    $destination = $outputDir . basename($argv[1],".txt") . "-" . $order . ".txt";
+    if (! file_exists($destination)) {
+      $length = 250000;
+      $text = file_get_contents($filename);
+      $markov_table = generate_markov_table($text, $order);
+      $markov = generate_markov_text($length, $markov_table, $order);
+      file_put_contents($destination, $markov);
+    }
+    echo("Calling:\n");
+    echo("python ngramaudio.py " . $outputDir . basename($argv[1],".txt") . "-" . $order . ".txt\n");
+    system("python ngramaudio.py " . $outputDir . basename($argv[1],".txt") . "-" . $order . ".txt");
   }
