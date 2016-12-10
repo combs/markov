@@ -7,20 +7,22 @@
 
 require 'markov.php';
 
+ini_set('memory_limit','1G');
+
 $outputDir = "/var/db/ngramradio/text/";
 $filename = $argv[1];
+$length = 25000;
 foreach (range(1,20) as $order) {
-    $destination = $outputDir . basename($argv[1],".txt") . "-" . $order . ".txt";
+    $destination = $outputDir . basename($argv[1],".txt") . "-" . $order . "-" . $length . ".txt";
     echo ("Checking for $destination\n");
     if (file_exists($destination)==FALSE) {
       echo ("Does not exist.");
-      $length = 250000;
       $text = file_get_contents($filename);
       $markov_table = generate_markov_table($text, $order);
       $markov = generate_markov_text($length, $markov_table, $order);
       file_put_contents($destination, $markov);
     }
     echo("Calling:\n");
-    echo("python ngramaudio.py " . $outputDir . basename($argv[1],".txt") . "-" . $order . ".txt\n");
-    system("python ngramaudio.py " . $outputDir . basename($argv[1],".txt") . "-" . $order . ".txt");
+    echo("python2.7 ngramaudio.py " . $destination . "\n");
+    passthru("python2.7 ngramaudio.py " . $destination);
   }
