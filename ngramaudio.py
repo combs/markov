@@ -39,11 +39,24 @@ def getSentence(algorithm, filename, sentence):
             return False
         return True
 
+    if algorithm is "picotts":
+        parameters = "pico2wave -w " + filename + " -- " + quote(sentence)
+        print parameters
+        theReturn = call(shlex.split(parameters), shell=False)
+        if (theReturn is not 0):
+            return False
+        if not os.path.exists(filename):
+            return False
+        return True
+
+
 def getExtension(algorithm):
     if algorithm is "translate_tts":
         return ".mp3"
     if "osx" in algorithm:
-        return ".aac"
+        return ".m4a"
+    if algorithm is "picotts":
+        return ".wav"
 
 
 if (len(sys.argv)) < 2:
