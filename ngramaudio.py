@@ -1,4 +1,4 @@
-import hashlib,sys,os,urllib2,urllib,shlex
+import hashlib,sys,os,urllib2,urllib,shlex,pydub,getopt,re
 from subprocess import call
 from pydub import AudioSegment
 try:  # py3
@@ -13,7 +13,7 @@ storage="/var/db/ngramradio/"
 
 def getSentence(algorithm, filename, sentence):
 
-    quoted = urllib.quote_plus(sentence + ".")
+    quoted = urllib.quote_plus(sentence)
 
     if algorithm is "translate_tts":
         if len(quoted) < 200:
@@ -58,74 +58,94 @@ def getExtension(algorithm):
     if algorithm is "picotts":
         return ".wav"
 
+def main(argv):
+    try:
+      opts, args = getopt.getopt(argv,"a:",["algorithm="])
+    except getopt.GetoptError:
+      print (sys.argv[0] + ' -a <algorithm> filename')
+      sys.exit(2)
+    if (len(args)) == 0 :
+        print("Usage: " + sys.argv[0] + " [filename]")
+        exit;
+    filename = args[0]
 
-if (len(sys.argv)) < 2:
-    print("Usage: " + sys.argv[0] + " [filename]")
-    exit;
+    ourFile = open (filename, 'r')
 
-ourFile = open (sys.argv[1], 'r')
-
-# directory = storage + sys.argv[1]
+    # directory = storage + sys.argv[1]
 
 
-basefilename = os.path.splitext(os.path.basename(sys.argv[1]))[0]
+    basefilename = os.path.splitext(os.path.basename(filename))[0]
 
-contents = ourFile.read().splitlines()
-ourFile.close()
+    contents = ourFile.read().splitlines()
+    ourFile.close()
 
-# Get rid of newlines and replace them with spaces
-sentences = ' '.join(str(v) for v in contents)
+    # Get rid of newlines and replace them with spaces
+    sentences = ' '.join(str(v) for v in contents)
 
-# Split the whole thing into sentences
-sentences = sentences.split(".")
+    # Split the whole thing into sentences
+    sentences = re.split("([\.\?\!])",sentences)
 
-for algorithm in algorithms:
-    directory = storage + algorithm
-    if not os.path.exists(directory):
-        os.makedirs(directory)
+    for algorithm in algorithms:
 
-    manifestFilename = storage + "/" + basefilename + "-" + algorithm + "-manifest.txt"
-    manifest = open (manifestFilename, 'w')
+        directory = storage + algorithm
+        if not os.path.exists(directory):
+            os.makedirs(directory)
 
-    hashes = []
-    didSomething = False
-    index = 0
-    extension = getExtension(algorithm)
+        manifestFilename = storage + "/" + basefilename + "-" + algorithm + "-manifest.txt"
+        manifest = open (manifestFilename, 'w')
 
-    for sentence in sentences:
-        index = index + 1
-        print ("Sentence " + str(index) + " of " + str(len(sentences)))
-        sentence = sentence.strip()
-        print sentence + "."
-        md5 = hashlib.md5()
-        md5.update(sentence)
-        theHash = md5.hexdigest()
-        hashes.append(theHash)
-        print (theHash)
-
-        ourFile = directory + "/" + theHash + extension
-
-        if not os.path.exists(ourFile):
-            if getSentence(algorithm, ourFile, sentence) is True:
-                manifest.write(directory + "/" + theHash + extension + "\n")
-                manifest.flush()
-                didSomething = True
-            else:
-                print ("error")
-                hashes.remove(theHash)
-        else:
-            manifest.write(directory + "/" + theHash + extension + "\n")
-
-    manifest.close()
-    combinedName = storage + basefilename + "-" + algorithm + "-combined.mp3"
-
-    if ((didSomething == True) or not os.path.exists(combinedName)) :
-        combined = AudioSegment.empty()
+        hashes = []
+        didSomething = False
         index = 0
-        manifestLines = open (manifestFilename,'r').read().splitlines()
-        for filename in manifestLines:
+        extension = getExtension(algorithm)
+
+        for sentence in sentences:
             index = index + 1
-            print ("Combined sentence " + str(index) + " of " + str(len(hashes)))
-            thisSound = AudioSegment.from_file(filename,os.path.splitext(filename)[1])
-            combined = combined + thisSound
-        combined.export(combinedName)
+            sentence = sentence.strip()
+            md5 = hashlib.md5()
+            md5.update(sentence)
+            theHash = md5.hexdigest()
+            hashes.append(theHash)
+
+            ourFile = directory + "/" + theHash + extension
+            # print ("Sentence " + str(index) + " of " + str(len(sentences)) + ": " + theHash + extension)
+            # print sentence + "."
+
+            if not os.path.exists(ourFile):
+                if getSentence(algorithm, ourFile, sentence) is True:
+                    manifest.write(directory + "/" + theHash + extension + "\n")
+                    manifest.flush()
+                    didSomething = True
+                else:
+                    print ("Failed to render sentence " + str(index) + " of " + str(len(sentences)) + ": " + theHash + extension + " with algorithm " + algorithm)
+                    print sentence
+                    # print ("Error: ", sys.exc_info()[0])
+                    hashes.remove(theHash)
+            else:
+                manifest.write(directory + "/" + theHash + extension + "\n")
+
+        manifest.close()
+        combinedName = storage + basefilename + "-" + algorithm + "-combined.mp3"
+
+        if ((didSomething == True) or not os.path.exists(combinedName)) :
+            combined = AudioSegment.empty()
+            index = 0
+            manifestLines = open (manifestFilename,'r').read().splitlines()
+            for filename in manifestLines:
+                index = index + 1
+                print ("Combined sentence " + str(index) + " of " + str(len(hashes)) + ": " + os.path.basename(filename))
+                extension = os.path.splitext(filename)[1]
+
+                try:
+                    thisSound = AudioSegment.from_file(filename,extension[1:])
+                    combined = combined + thisSound
+                except pydub.exceptions.CouldntDecodeError:
+                    os.unlink(filename)
+                    print("Removing corrupt file: " + filename)
+
+            combined.export(combinedName)
+
+
+
+if __name__ == "__main__":
+   main(sys.argv[1:])
