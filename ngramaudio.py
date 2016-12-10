@@ -6,7 +6,7 @@ try:  # py3
 except ImportError:  # py2
     from pipes import quote
 
-algorithms=["osx_alex","osx_bruce","osx_lee","osx_fiona","osx_oliver","osx_amelie","osx_zarvox","osx_tom","osx_ava","osx_allison","osx_susan","osx_maged","osx_ting-ting","osx_yelda","osx_jorge","osx_klara","osx_juan","osx_milena","osx_yuna","osx_otoya","translate_tts"]
+algorithms=["osx_alex","osx_bruce","osx_fiona","osx_zarvox","osx_tom","osx_ava","osx_allison","osx_susan","osx_oliver","osx_lee","osx_amelie","osx_maged","osx_ting-ting","osx_yelda","osx_jorge","osx_klara","osx_juan","osx_milena","osx_yuna","osx_otoya","translate_tts"]
 
 storage="/var/db/ngramradio/"
 
