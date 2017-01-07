@@ -80,7 +80,7 @@ def main(argv):
             algorithms.extend(a.split(","))
             print(type(o))
             print(type(a))
-
+            
     if len(algorithms)==0:
         algorithms.extend(all_algorithms)
 

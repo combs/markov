@@ -22,13 +22,19 @@ $length = $argv[3] ;
 if (!$length) {
   $length = 25000;
 }
+$orders = $argv[4] ;
+if (!$orders) {
+  $orders = range(1,20);
+} else {
+  $orders = explode(",",$argv[4]);
+}
 
 if (file_exists($filename)==FALSE) {
   echo ("$filename does not exist.");
   exit;
 }
 
-foreach (range(1,20) as $order) {
+foreach ($orders as $order) {
     $destination = $outputDir . basename($argv[1],".txt") . "-" . $order . "-" . $length . ".txt";
     echo ("Checking for $destination\n");
 
