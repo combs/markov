@@ -15,7 +15,10 @@ if (!$filename) {
    exit("Must provide filename.\n");
  }
 $algorithm = $argv[2] || null;
-$length = $argv[3] || 25000;
+$length = $argv[3] ;
+if (!$length) {
+  $length = 25000;
+}
 
 if (file_exists($filename)==FALSE) {
   echo ("$filename does not exist.");
