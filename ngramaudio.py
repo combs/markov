@@ -6,7 +6,8 @@ try:  # py3
 except ImportError:  # py2
     from pipes import quote
 
-algorithms=["osx_alex","osx_bruce","osx_fiona","osx_zarvox","osx_tom","osx_ava","osx_allison","osx_susan","osx_oliver","osx_lee","osx_amelie","osx_maged","osx_ting-ting","osx_yelda","osx_jorge","osx_klara","osx_juan","osx_milena","osx_yuna","osx_otoya","translate_tts"]
+all_algorithms=["osx_alex","osx_bruce","osx_fiona","osx_zarvox","osx_tom","osx_ava","osx_allison","osx_susan","osx_oliver","osx_lee","osx_amelie","osx_maged","osx_ting-ting","osx_yelda","osx_jorge","osx_klara","osx_juan","osx_milena","osx_yuna","osx_otoya","translate_tts"]
+algorithms=[]
 
 storage="/var/db/ngramradio/"
 
@@ -58,16 +59,30 @@ def getExtension(algorithm):
     if algorithm is "picotts":
         return ".wav"
 
+def usage():
+    print ("\nUsage: " + str(sys.argv[0]) + ' -a <algorithm> filename')
+    print ("\nAvailable algorithms: " + str(all_algorithms))
+
 def main(argv):
     try:
-      opts, args = getopt.getopt(argv,"a:",["algorithm="])
+        opts, args = getopt.getopt(argv,"a:",["algorithm="])
     except getopt.GetoptError:
-      print (sys.argv[0] + ' -a <algorithm> filename')
-      sys.exit(2)
+        usage()
+        sys.exit(2)
+    # print (len(args))
     if (len(args)) == 0 :
-        print("Usage: " + sys.argv[0] + " [filename]")
-        exit;
+        usage()
+        sys.exit(2)
     filename = args[0]
+
+    for o,a in opts:
+        if o in ("-a","--algorithm"):
+            algorithms.extend(a.split(","))
+            print(type(o))
+            print(type(a))
+
+    if len(algorithms)==0:
+        algorithms.extend(all_algorithms)
 
     ourFile = open (filename, 'r')
 
