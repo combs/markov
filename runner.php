@@ -14,7 +14,10 @@ $filename = $argv[1];
 if (!$filename) {
    exit("Must provide filename.\n");
  }
-$algorithm = $argv[2] || null;
+$algorithm = $argv[2];
+if (!$algorithm) {
+  $algorithm = null;
+}
 $length = $argv[3] ;
 if (!$length) {
   $length = 25000;
